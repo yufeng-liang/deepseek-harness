@@ -12,12 +12,8 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 120
     env:
-      DSH_DESKTOP_APP_ID: com.deepseek.dsh
-      DSH_DESKTOP_AUTO_UPDATE_ENV: production
       DSH_DESKTOP_UPDATE_CHANNEL: nightly
       DSH_TELEMETRY_DISABLED: "1"
-      DSH_DESKTOP_MANDATORY_UPDATE_PROD_ORIGIN: https://download.deepseek.com
-      DSH_DESKTOP_MANDATORY_UPDATE_TEST_ORIGIN: https://download.deepseek.com
     steps:
       - uses: actions/checkout@v4
         with:
@@ -33,8 +29,6 @@ jobs:
           Set-Content -Path apps/desktop/.env.windows -Encoding utf8 -Value @(
             "DSH_DESKTOP_APP_ID=com.deepseek.dsh",
             "DSH_DESKTOP_AUTO_UPDATE_ENV=production",
-            "DSH_DESKTOP_UPDATE_CHANNEL=nightly",
-            "DSH_TELEMETRY_DISABLED=1",
             "DSH_DESKTOP_MANDATORY_UPDATE_PROD_ORIGIN=https://download.deepseek.com",
             "DSH_DESKTOP_MANDATORY_UPDATE_TEST_ORIGIN=https://download.deepseek.com"
           )
