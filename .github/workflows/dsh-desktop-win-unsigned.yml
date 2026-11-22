@@ -1,0 +1,52 @@
+name: DSH Desktop Win x64 Unsigned
+on:
+  workflow_dispatch:
+    inputs:
+      source_ref:
+        description: Tag or branch to build
+        required: true
+        default: dsh-v0.2.3-alpha.1
+        type: string
+jobs:
+  package:
+    runs-on: windows-latest
+    timeout-minutes: 120
+    env:
+      DSH_DESKTOP_APP_ID: com.deepseek.dsh
+      DSH_DESKTOP_AUTO_UPDATE_ENV: production
+      DSH_DESKTOP_UPDATE_CHANNEL: nightly
+      DSH_TELEMETRY_DISABLED: "1"
+      DSH_DESKTOP_MANDATORY_UPDATE_PROD_ORIGIN: https://download.deepseek.com
+      DSH_DESKTOP_MANDATORY_UPDATE_TEST_ORIGIN: https://download.deepseek.com
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_ref }}
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Install pnpm
+        run: npm install -g pnpm@11.28.5
+      - name: Write desktop env file
+        run: |
+          Set-Content -Path apps/desktop/.env.windows -Encoding utf8 -Value @(
+            "DSH_DESKTOP_APP_ID=com.deepseek.dsh",
+            "DSH_DESKTOP_AUTO_UPDATE_ENV=production",
+            "DSH_DESKTOP_UPDATE_CHANNEL=nightly",
+            "DSH_TELEMETRY_DISABLED=1",
+            "DSH_DESKTOP_MANDATORY_UPDATE_PROD_ORIGIN=https://download.deepseek.com",
+            "DSH_DESKTOP_MANDATORY_UPDATE_TEST_ORIGIN=https://download.deepseek.com"
+          )
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build unsigned NSIS installer
+        run: pnpm package:desktop:win:x64:unsigned
+      - name: List artifacts
+        run: Get-ChildItem -Recurse apps/desktop/.desktop-build/targets/win-x64/unsigned-artifacts/
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: dsh-desktop-win-x64-unsigned
+          path: apps/desktop/.desktop-build/targets/win-x64/unsigned-artifacts/*.exe
+          if-no-files-found: error
